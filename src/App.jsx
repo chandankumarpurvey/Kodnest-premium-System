@@ -3,13 +3,18 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Layout from './components/Layout';
 import ContextHeader from './components/ContextHeader';
 import Navigation from './components/Navigation';
-import PlaceholderPage from './components/PlaceholderPage';
+import Digest from './components/Digest';
 import WorkspaceLayout from './components/WorkspaceLayout';
 import SecondaryPanel from './components/SecondaryPanel';
 import DesignSystemDemo from './components/DesignSystemDemo';
 import NotFound from './components/NotFound';
 import Dashboard from './components/Dashboard';
 import Saved from './components/Saved';
+import Settings from './components/Settings';
+import PlaceholderPage from './components/PlaceholderPage';
+import TestChecklist from './components/TestChecklist';
+import ShipPage from './components/ShipPage';
+import ProofPage from './components/ProofPage';
 
 function App() {
   return (
@@ -43,21 +48,42 @@ function App() {
 
             <Route path="/digest" element={
               <WorkspaceLayout
-                primary={<PlaceholderPage title="Daily Digest" />}
+                primary={<Digest />}
                 secondary={<SecondaryPanel />}
               />
             } />
 
             <Route path="/settings" element={
               <WorkspaceLayout
-                primary={<PlaceholderPage title="Settings" />}
+                primary={<Settings />}
+                secondary={<SecondaryPanel />}
+              />
+            } />
+
+            <Route path="/jt/proof" element={
+              <WorkspaceLayout
+                primary={<ProofPage />}
                 secondary={<SecondaryPanel />}
               />
             } />
 
             <Route path="/proof" element={
               <WorkspaceLayout
-                primary={<PlaceholderPage title="Proof of Work" />}
+                primary={<ProofPage />}
+                secondary={<SecondaryPanel />}
+              />
+            } />
+
+            <Route path="/jt/07-test" element={
+              <WorkspaceLayout
+                primary={<TestChecklist />}
+                secondary={<SecondaryPanel />}
+              />
+            } />
+
+            <Route path="/jt/08-ship" element={
+              <WorkspaceLayout
+                primary={<ShipPage />}
                 secondary={<SecondaryPanel />}
               />
             } />

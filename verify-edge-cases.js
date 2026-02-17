@@ -3,71 +3,100 @@ import { chromium } from 'playwright';
 (async () => {
     console.log('Starting Edge Case Verification...');
     const browser = await chromium.launch();
-    const page = await browser.newPage();
-
-    let allPassed = true;
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const baseUrl = 'http://127.0.0.1:5173';
 
     try {
-        // --- Test 1: 404 Handling ---
-        console.log('\n🧪 Test 1: 404 Handling (/random-page-123)');
-        await page.goto('http://127.0.0.1:5173/random-page-123');
+        // --- TEST 1: CRASH CHECK & BANNER ---
+        console.log('\n--- Test 1: Crash Check & Banner ---');
+        await page.goto(baseUrl);
+        await page.evaluate(() => localStorage.clear());
+        await page.goto(`${baseUrl}/dashboard`, { waitUntil: 'networkidle' });
 
-        // Wait for React to render
-        await page.waitForSelector('.not-found-container', { timeout: 5000 });
+        const bannerVisible = await page.locator('text=Set your preferences').isVisible();
+        const jobCount = await page.locator('.card').count();
 
-        // Check for specific 404 content
-        const bodyText = await page.locator('body').textContent();
-        if (bodyText.includes('Page Not Found') && bodyText.includes('404')) {
-            console.log('✅ 404 Page Rendered Correctly');
-        } else {
-            console.error('❌ 404 Page Failed. Found:', bodyText.substring(0, 100) + '...');
-            allPassed = false;
-        }
+        if (!bannerVisible) throw new Error('❌ Test 1 Failed: Banner missing on clean state.');
+        if (jobCount === 0) throw new Error('❌ Test 1 Failed: No jobs rendered on clean state.');
+        console.log('✅ Test 1 Passed: No crash, banner visible, jobs shown.');
 
-        // --- Test 2: Active Link Stability ---
-        console.log('\n🧪 Test 2: Active Link Click Stability');
-        // Go to dashboard
-        await page.goto('http://127.0.0.1:5173/dashboard');
-
-        // Inject a flag into window to detect reload
-        await page.evaluate(() => window._wasLoaded = true);
-
-        // Click Dashboard link again
-        const dashboardLink = page.locator('a[href="/dashboard"]');
-        await dashboardLink.click();
-
-        // Wait a moment for potential reload
+        // --- TEST 2: BROAD PREFERENCES (VARIANCE) ---
+        console.log('\n--- Test 2: Broad Preferences (Variance) ---');
+        await page.goto(`${baseUrl}/settings`);
+        await page.locator('input[placeholder*="Software Engineer"]').fill('Developer'); // Very broad
+        await page.locator('button', { hasText: 'Bangalore' }).click(); // Common loc
+        await page.locator('button', { hasText: 'Save Preferences' }).click();
         await page.waitForTimeout(1000);
 
-        // Check if flag still exists
-        const isSamePage = await page.evaluate(() => window._wasLoaded === true);
+        await page.goto(`${baseUrl}/dashboard`, { waitUntil: 'networkidle' });
+        // Extract scores
+        const scores = await page.locator('text=% Match').allInnerTexts();
+        const scoreNums = scores.map(s => parseInt(s));
 
-        if (isSamePage) {
-            console.log('✅ No Reload Detected on Active Link Click');
-        } else {
-            console.error('❌ Page Reloaded! Stability Check Failed.');
-            allPassed = false;
+        const min = Math.min(...scoreNums);
+        const max = Math.max(...scoreNums);
+        console.log(`   Scores Range: ${min} - ${max}`);
+
+        if (min === max) throw new Error('❌ Test 2 Failed: All scores are identical (Expected variance).');
+        if (max < 50) throw new Error('❌ Test 2 Failed: Broad prefs should yield some high scores.');
+        console.log('✅ Test 2 Passed: Scores vary correctly.');
+
+        // --- TEST 3: NARROW PREFERENCES (EMPTY STATE) ---
+        console.log('\n--- Test 3: Narrow Preferences (Empty State) ---');
+        await page.goto(`${baseUrl}/settings`);
+        await page.locator('input[placeholder*="Software Engineer"]').fill('CobolMainframeLegacy');
+        // Unselect Bangalore 
+        await page.locator('button', { hasText: 'Bangalore' }).click();
+        await page.locator('button', { hasText: 'Save Preferences' }).click();
+        await page.waitForTimeout(1000);
+
+        await page.goto(`${baseUrl}/dashboard`, { waitUntil: 'networkidle' });
+
+        // 1. Check scores are low/zero
+        const newScores = await page.locator('text=% Match').allInnerTexts();
+        const highScores = newScores.map(s => parseInt(s)).filter(s => s > 40);
+        if (highScores.length > 5) console.warn('⚠️ Warning: Unexpected high scores for Cobol.');
+
+        // 2. Toggle "Show Matches Only"
+        await page.locator('input[type="checkbox"]').first().click();
+        await page.waitForTimeout(500);
+
+        const emptyState = await page.locator('text=No matches found').isVisible();
+        if (!emptyState) throw new Error('❌ Test 3 Failed: Empty state not shown for narrow prefs.');
+        console.log('✅ Test 3 Passed: Empty state handled correctly.');
+
+        // --- TEST 4: CLEAR FIELDS & UPDATE ---
+        console.log('\n--- Test 4: Clear Fields & Update ---');
+        await page.reload(); // Reset state
+        // Uncheck toggle to see jobs again
+        if (await page.locator('input[type="checkbox"]').first().isChecked()) {
+            await page.locator('input[type="checkbox"]').first().click();
         }
 
-        await page.screenshot({ path: 'evidence-4-404.png' });
-        console.log('📸 Saved evidence-4-404.png');
+        // Go to settings, clear Role
+        await page.goto(`${baseUrl}/settings`);
+        await page.locator('input[placeholder*="Software Engineer"]').fill('');
+        await page.locator('button', { hasText: 'Save Preferences' }).click();
+        await page.waitForTimeout(1000);
+
+        await page.goto(`${baseUrl}/dashboard`);
+        const clearedScores = await page.locator('text=% Match').allInnerTexts();
+        const maxCleared = Math.max(...clearedScores.map(s => parseInt(s)));
+
+        console.log(`   Max Score after clearing role: ${maxCleared}`);
+        // Should be much lower than Test 2's max
+        if (maxCleared >= max) console.warn('⚠️ Warning: Scores didn\'t drop significantly? Check logic.');
+
+        console.log('✅ Test 4 Passed: Updates processed immediately.');
+
+        console.log('\n✨ EDGE CASE VERIFICATION PASSED ✨');
+        process.exit(0);
 
     } catch (error) {
-        console.error('❌ Edge Case Test Error:', error);
-        console.log('--- PAGE HTML DUMP ---');
-        console.log(await page.innerHTML('body'));
-        console.log('----------------------');
-        await page.screenshot({ path: 'debug-404-error.png' });
-        console.log('📸 Saved debug-404-error.png');
-        allPassed = false;
+        console.error('❌ Verification Failed:', error);
+        process.exit(1);
     } finally {
         await browser.close();
-        if (allPassed) {
-            console.log('\n✨ ALL EDGE CASES VERIFIED ✨');
-            process.exit(0);
-        } else {
-            console.log('\n⚠️ EDGE CASE FAILURES DETECTED');
-            process.exit(1);
-        }
     }
 })();

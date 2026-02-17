@@ -11,6 +11,13 @@ const Saved = () => {
         const saved = localStorage.getItem('savedJobIds');
         return saved ? JSON.parse(saved) : [];
     });
+
+    // Load status to ensure badges are correct
+    const [jobStatus] = useState(() => {
+        const saved = localStorage.getItem('jobTrackerStatus');
+        return saved ? JSON.parse(saved) : {};
+    });
+
     const [selectedJob, setSelectedJob] = useState(null);
 
     useEffect(() => {
@@ -40,6 +47,7 @@ const Saved = () => {
                             onSave={toggleSave}
                             onView={setSelectedJob}
                             isSaved={true}
+                            status={jobStatus[job.id]?.status || 'Not Applied'}
                         />
                     ))
                 ) : (

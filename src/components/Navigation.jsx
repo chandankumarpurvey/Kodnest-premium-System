@@ -24,13 +24,30 @@ const NavItem = ({ to, label, onClick }) => (
 
 const Navigation = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const [testCount, setTestCount] = useState(() => {
+        const saved = localStorage.getItem('jobTrackerTestStatus');
+        return saved ? JSON.parse(saved).length : 0;
+    });
+
+    React.useEffect(() => {
+        const updateCount = () => {
+            const saved = localStorage.getItem('jobTrackerTestStatus');
+            setTestCount(saved ? JSON.parse(saved).length : 0);
+        };
+        window.addEventListener('testStatusChanged', updateCount);
+        return () => window.removeEventListener('testStatusChanged', updateCount);
+    }, []);
+
+    const isShipUnlocked = testCount >= 10;
 
     const links = [
         { to: "/dashboard", label: "Dashboard" },
         { to: "/saved", label: "Saved" },
         { to: "/digest", label: "Digest" },
         { to: "/settings", label: "Settings" },
-        { to: "/proof", label: "Proof" },
+        { to: "/jt/proof", label: "Proof" },
+        { to: "/jt/07-test", label: "Test" },
+        { to: "/jt/08-ship", label: isShipUnlocked ? "🚀 Ship" : "🔒 Ship", locked: !isShipUnlocked },
     ];
 
     return (
@@ -38,7 +55,12 @@ const Navigation = () => {
             {/* Desktop Nav */}
             <div className="hidden-mobile flex gap-4 pb-0" style={{ borderBottom: '1px solid var(--color-border)' }}>
                 {links.map(link => (
-                    <NavItem key={link.to} to={link.to} label={link.label} />
+                    <NavItem
+                        key={link.to}
+                        to={link.to}
+                        label={link.label}
+                        style={link.locked ? { opacity: 0.5, pointerEvents: 'none' } : {}}
+                    />
                 ))}
             </div>
 

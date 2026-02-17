@@ -33,13 +33,15 @@ const descriptions = [
 const generateJobs = (count) => {
     const jobs = [];
     for (let i = 1; i <= count; i++) {
-        const company = companies[Math.floor(Math.random() * companies.length)];
-        const role = roles[Math.floor(Math.random() * roles.length)];
-        const location = locations[Math.floor(Math.random() * locations.length)];
-        const mode = modes[Math.floor(Math.random() * modes.length)];
-        const source = sources[Math.floor(Math.random() * sources.length)];
-        const desc = descriptions[Math.floor(Math.random() * descriptions.length)];
-        const daysAgo = Math.floor(Math.random() * 10);
+        // Deterministic Selection based on ID
+        const company = companies[i % companies.length];
+        const role = roles[i % roles.length];
+        const location = locations[i % locations.length];
+        const mode = modes[i % modes.length];
+        const source = sources[i % sources.length];
+        const desc = descriptions[i % descriptions.length];
+        // Deterministic daysAgo (pseudo-random looking but fixed)
+        const daysAgo = (i * 7) % 10;
 
         jobs.push({
             id: i,

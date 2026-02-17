@@ -1,8 +1,19 @@
 import React from 'react';
-import { MapPin, Briefcase, Clock, ExternalLink, Bookmark, Check } from 'lucide-react';
+import { MapPin, Briefcase, Clock, ExternalLink, Bookmark, Check, ChevronDown, Circle } from 'lucide-react';
 import Button from './Button';
+import { getScoreColor } from '../utils/scoring';
 
-const JobCard = ({ job, onSave, onView, isSaved }) => {
+const JobCard = ({ job, onSave, onView, isSaved, status = 'Not Applied', onStatusChange }) => {
+
+    const getStatusColor = (s) => {
+        switch (s) {
+            case 'Applied': return 'text-blue-600 bg-blue-50 border-blue-200';
+            case 'Selected': return 'text-green-600 bg-green-50 border-green-200';
+            case 'Rejected': return 'text-red-600 bg-red-50 border-red-200';
+            default: return 'text-secondary bg-tertiary border-border';
+        }
+    };
+
     return (
         <div className="card hover:border-accent transition-colors duration-200 group relative bg-white">
             <div className="flex justify-between items-start mb-2">
@@ -14,9 +25,20 @@ const JobCard = ({ job, onSave, onView, isSaved }) => {
                 </div>
 
                 {/* Source Badge */}
-                <span className="text-xs uppercase font-bold tracking-wider text-subtle border border-border px-2 py-1 rounded-sm">
-                    {job.source}
-                </span>
+                <div className="flex flex-col items-end gap-1">
+                    <span className="text-xs uppercase font-bold tracking-wider text-subtle border border-border px-2 py-1 rounded-sm">
+                        {job.source}
+                    </span>
+                    {/* Match Score Badge */}
+                    {job.matchScore !== undefined && (
+                        <span
+                            className="text-xs font-bold px-2 py-0.5 rounded-full text-white"
+                            style={{ backgroundColor: getScoreColor(job.matchScore) }}
+                        >
+                            {job.matchScore}% Match
+                        </span>
+                    )}
+                </div>
             </div>
 
             <div className="flex flex-wrap gap-y-2 gap-x-4 text-xs text-secondary mb-4">
@@ -34,6 +56,31 @@ const JobCard = ({ job, onSave, onView, isSaved }) => {
                 </div>
                 <div className="font-semibold text-primary">
                     {job.salaryRange}
+                </div>
+            </div>
+
+            <div className="mb-4">
+                <div className="relative inline-block w-full">
+                    <button
+                        className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium border rounded-md transition-colors ${getStatusColor(status)}`}
+                    >
+                        <span className="flex items-center gap-2">
+                            <Circle size={10} fill="currentColor" />
+                            {status}
+                        </span>
+                        <ChevronDown size={14} />
+                    </button>
+                    <select
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        value={status}
+                        onChange={(e) => onStatusChange && onStatusChange(job.id, e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <option value="Not Applied">Not Applied</option>
+                        <option value="Applied">Applied</option>
+                        <option value="Selected">Selected</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
                 </div>
             </div>
 
