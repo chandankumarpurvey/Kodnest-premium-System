@@ -8,6 +8,8 @@ import WorkspaceLayout from './components/WorkspaceLayout';
 import SecondaryPanel from './components/SecondaryPanel';
 import DesignSystemDemo from './components/DesignSystemDemo';
 import NotFound from './components/NotFound';
+import Dashboard from './components/Dashboard';
+import Saved from './components/Saved';
 
 function App() {
   return (
@@ -27,14 +29,14 @@ function App() {
 
             <Route path="/dashboard" element={
               <WorkspaceLayout
-                primary={<PlaceholderPage title="Dashboard" />}
+                primary={<Dashboard />}
                 secondary={<SecondaryPanel />}
               />
             } />
 
             <Route path="/saved" element={
               <WorkspaceLayout
-                primary={<PlaceholderPage title="Saved Jobs" />}
+                primary={<Saved />}
                 secondary={<SecondaryPanel />}
               />
             } />
