@@ -1,25 +1,77 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import ContextHeader from './components/ContextHeader';
+import Navigation from './components/Navigation';
+import PlaceholderPage from './components/PlaceholderPage';
 import WorkspaceLayout from './components/WorkspaceLayout';
 import SecondaryPanel from './components/SecondaryPanel';
 import DesignSystemDemo from './components/DesignSystemDemo';
 
 function App() {
   return (
-    <Layout step={1} totalSteps={5} status="In Progress">
+    <Router>
+      <Layout step={2} totalSteps={5} status="Route Shell">
 
-      <ContextHeader
-        title="Design System Overview"
-        description="A calm, intentional, and confident design system for premium B2C products. No noise, just focus."
-      />
+        <ContextHeader
+          title="Job Notification Tracker"
+          description="Track application updates, manage saved jobs, and configure notification preferences."
+        />
 
-      <WorkspaceLayout
-        primary={<DesignSystemDemo />}
-        secondary={<SecondaryPanel />}
-      />
+        <Navigation />
 
-    </Layout>
+        <div className="route-content mt-4">
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+            <Route path="/dashboard" element={
+              <WorkspaceLayout
+                primary={<PlaceholderPage title="Dashboard" />}
+                secondary={<SecondaryPanel />}
+              />
+            } />
+
+            <Route path="/saved" element={
+              <WorkspaceLayout
+                primary={<PlaceholderPage title="Saved Jobs" />}
+                secondary={<SecondaryPanel />}
+              />
+            } />
+
+            <Route path="/digest" element={
+              <WorkspaceLayout
+                primary={<PlaceholderPage title="Daily Digest" />}
+                secondary={<SecondaryPanel />}
+              />
+            } />
+
+            <Route path="/settings" element={
+              <WorkspaceLayout
+                primary={<PlaceholderPage title="Settings" />}
+                secondary={<SecondaryPanel />}
+              />
+            } />
+
+            <Route path="/proof" element={
+              <WorkspaceLayout
+                primary={<PlaceholderPage title="Proof of Work" />}
+                secondary={<SecondaryPanel />}
+              />
+            } />
+
+            {/* Keeping the original demo accessible for reference */}
+            <Route path="/demo" element={
+              <WorkspaceLayout
+                primary={<DesignSystemDemo />}
+                secondary={<SecondaryPanel />}
+              />
+            } />
+
+          </Routes>
+        </div>
+
+      </Layout>
+    </Router>
   );
 }
 
