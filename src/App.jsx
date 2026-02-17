@@ -7,6 +7,7 @@ import PlaceholderPage from './components/PlaceholderPage';
 import WorkspaceLayout from './components/WorkspaceLayout';
 import SecondaryPanel from './components/SecondaryPanel';
 import DesignSystemDemo from './components/DesignSystemDemo';
+import NotFound from './components/NotFound';
 
 function App() {
   return (
@@ -63,6 +64,14 @@ function App() {
             <Route path="/demo" element={
               <WorkspaceLayout
                 primary={<DesignSystemDemo />}
+                secondary={<SecondaryPanel />}
+              />
+            } />
+
+            {/* Catch-all for 404 */}
+            <Route path="*" element={
+              <WorkspaceLayout
+                primary={<NotFound />}
                 secondary={<SecondaryPanel />}
               />
             } />
