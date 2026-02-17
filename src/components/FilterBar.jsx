@@ -2,7 +2,7 @@ import React from 'react';
 import { Search, MapPin, Briefcase, Filter, ChevronDown, SortAsc } from 'lucide-react';
 import Button from './Button';
 
-const FilterBar = () => {
+const FilterBar = ({ onSearch }) => {
     return (
         <div className="filter-bar-container grid gap-4 p-4 mb-6" style={{
             backgroundColor: 'white',
@@ -18,6 +18,7 @@ const FilterBar = () => {
                         placeholder="Search by role, company, or skills..."
                         className="input"
                         style={{ paddingLeft: '40px', width: '100%' }}
+                        onChange={(e) => onSearch(e.target.value)}
                     />
                 </div>
                 <Button variant="primary">Search</Button>

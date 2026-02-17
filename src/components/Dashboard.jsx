@@ -7,6 +7,7 @@ import { jobs as initialJobs } from '../data/mockJobs';
 
 const Dashboard = () => {
     const [jobs] = useState(initialJobs);
+    const [searchQuery, setSearchQuery] = useState('');
     const [savedJobIds, setSavedJobIds] = useState(() => {
         const saved = localStorage.getItem('savedJobIds');
         return saved ? JSON.parse(saved) : [];
@@ -31,13 +32,21 @@ const Dashboard = () => {
         setSelectedJob(null);
     };
 
+    const filteredJobs = jobs.filter(job => {
+        const query = (searchQuery || '').toLowerCase();
+        return (
+            job.title.toLowerCase().includes(query) ||
+            job.company.toLowerCase().includes(query)
+        );
+    });
+
     return (
         <div className="dashboard-container h-full flex flex-col">
-            <FilterBar />
+            <FilterBar onSearch={setSearchQuery} />
 
             <div className="job-grid grid grid-cols-1 md:grid-cols-2 gap-4 pb-8 overflow-y-auto">
-                {jobs.length > 0 ? (
-                    jobs.map(job => (
+                {filteredJobs.length > 0 ? (
+                    filteredJobs.map(job => (
                         <JobCard
                             key={job.id}
                             job={job}
